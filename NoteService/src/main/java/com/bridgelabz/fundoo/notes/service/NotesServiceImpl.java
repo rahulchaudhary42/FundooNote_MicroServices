@@ -56,7 +56,8 @@ public class NotesServiceImpl implements INotesService {
 	private ObjectMapper objectMapper;
 
 	@Override
-	public Response createNote(String userId, NotesDto notesDto) {
+	public Response createNote(String token, NotesDto notesDto) {
+		String userId = jWTToken.verifyToken(token);
 		System.out.println(notesDto.getTitle() + "\t" + notesDto.getDescription());
 		logger.info(notesDto.toString());
 		if (notesDto.getTitle().isEmpty() && notesDto.getDescription().isEmpty()) {
@@ -66,27 +67,16 @@ public class NotesServiceImpl implements INotesService {
 		note.setUserId(userId);
 		note.setCreated(LocalDateTime.now());
 		note.setModified(LocalDateTime.now());
-		Note savednote = notesRepository.save(note);
+		notesRepository.save(note);
 
-//		List<Note> notes = user.get().getNotes();
-//
-//		if (notes != null) {
-//			notes.add(note);
-//			user.get().setNotes(notes);
-//		} else {
-//			notes = new ArrayList<Note>();
-//			notes.add(note);
-//			user.get().setNotes(notes);
-//		}
-//
-//		userRepository.save(user.get());
 		Response response = StatusHelper.statusInfo(environment.getProperty("status.notes.createdSuccessfull"),
 				Integer.parseInt(environment.getProperty("status.success.code")));
 		return response;
 	}
 
 	@Override
-	public Response updateNote(NotesDto notesDto, String userId, String noteId) {
+	public Response updateNote(NotesDto notesDto, String token, String noteId) {
+		String userId = jWTToken.verifyToken(token);
 		if (notesDto.getTitle().isEmpty() && notesDto.getDescription().isEmpty()) {
 			throw new NotesException("Title and description are empty", -5);
 		}
@@ -102,7 +92,8 @@ public class NotesServiceImpl implements INotesService {
 	}
 
 	@Override
-	public Response deleteNote(String userId, String noteId) {
+	public Response deleteNote(String token, String noteId) {
+		String userId=jWTToken.verifyToken(token);
 		Note notes = notesRepository.findByIdAndUserId(noteId, userId);
 		if (notes == null) {
 			throw new NotesException("Invalid input", -5);
@@ -120,7 +111,8 @@ public class NotesServiceImpl implements INotesService {
 		return response;
 	}
 
-	public List<Note> getAllNote(String userId, boolean isPin, boolean isTrash, boolean isArchive) {
+	public List<Note> getAllNote(String token, boolean isPin, boolean isTrash, boolean isArchive) {
+		String userId=jWTToken.verifyToken(token);
 		List<Note> listNote = notesRepository.findByUserId(userId);
 		List<Note> notes = new ArrayList<Note>();
 		for (Note note : listNote) {
@@ -128,12 +120,13 @@ public class NotesServiceImpl implements INotesService {
 				notes.add(note);
 			}
 		}
-		logger.info("Getting notes {}", notes);
+		 
 		return notes;
 	}
 
 	@Override
-	public Response pinAndUnPin(String userId, String noteId) {
+	public Response pinAndUnPin(String token, String noteId) {
+		String userId=jWTToken.verifyToken(token);
 		Note notes = notesRepository.findByIdAndUserId(noteId, userId);
 		if (notes == null) {
 			throw new NotesException("Invalid input", -5);
@@ -154,7 +147,8 @@ public class NotesServiceImpl implements INotesService {
 	}
 
 	@Override
-	public Response trashAndUnTrash(String userId, String noteId) {
+	public Response trashAndUnTrash(String token, String noteId) {
+		String userId=jWTToken.verifyToken(token);
 		Note notes = notesRepository.findByIdAndUserId(noteId, userId);
 		if (notes.isTrash() == false) {
 			notes.setTrash(true);
@@ -172,7 +166,8 @@ public class NotesServiceImpl implements INotesService {
 	}
 
 	@Override
-	public Response archiveAndUnArchive(String userId, String noteId) {
+	public Response archiveAndUnArchive(String token, String noteId) {
+		String userId=jWTToken.verifyToken(token);
 		Note notes = notesRepository.findByIdAndUserId(noteId, userId);
 		if (notes == null) {
 			throw new NotesException("Invalid input", -5);
@@ -192,80 +187,11 @@ public class NotesServiceImpl implements INotesService {
 		}
 	}
 
-	@Override
-	public List<Note> getArchiveNotes(String token) {
-		// String id = userToken.tokenVerify(token);
-		String userId = jWTToken.verifyToken(token);
-		List<Note> notes = (List<Note>) notesRepository.findByUserId(userId);
-		List<Note> listNotes = new ArrayList<>();
-		for (Note userNotes : notes) {
-			Note notesDto = modelMapper.map(userNotes, Note.class);
-			if (userNotes.isArchive() == true && userNotes.isTrash() == false) {
-				listNotes.add(notesDto);
-			}
-		}
-		return listNotes;
-	}
+ 
+ 
+ 
+ 
 
-	@Override
-	public List<Note> getTrashNotes(String token) {
-		// String id = userToken.tokenVerify(token);
-		String userId = jWTToken.verifyToken(token);
-		List<Note> notes = (List<Note>) notesRepository.findByUserId(userId);
-		List<Note> listNotes = new ArrayList<>();
-		for (Note userNotes : notes) {
-			Note notesDto = modelMapper.map(userNotes, Note.class);
-			if (userNotes.isTrash() == true) {
-				listNotes.add(notesDto);
-			}
-		}
-		return listNotes;
-	}
-
-	@Override
-	public Response deletePermanently(String token, String noteId) {
-		// String ide = userToken.tokenVerify(token);
-		String userId = jWTToken.verifyToken(token);
-		Note notes = notesRepository.findByIdAndUserId(noteId, userId);
-		if (notes.isTrash() == true) {
-			notesRepository.delete(notes);
-			Response response = StatusHelper.statusInfo(environment.getProperty("status.note.deleted"),
-					Integer.parseInt(environment.getProperty("status.success.code")));
-			return response;
-		} else {
-			Response response = StatusHelper.statusInfo(environment.getProperty("status.note.notdeleted"),
-					Integer.parseInt(environment.getProperty("status.note.errorCode")));
-			return response;
-		}
-	}
-
-	@Override
-	public List<Note> getUnPinnedNotes(String token) {
-		// String id = userToken.tokenVerify(token);
-		String userId = jWTToken.verifyToken(token);
-		List<Note> notes = (List<Note>) notesRepository.findByUserId(userId);
-		List<Note> listNotes = new ArrayList<>();
-		for (Note userNotes : notes) {
-			if (userNotes.isPin() == false && userNotes.isArchive() == false && userNotes.isTrash() == false) {
-				listNotes.add(userNotes);
-			}
-		}
-		return listNotes;
-	}
-
-	@Override
-	public List<Note> getPinnedNotes(String token) {
-		// String id = userToken.tokenVerify(token);
-		String userId = jWTToken.verifyToken(token);
-		List<Note> notes = (List<Note>) notesRepository.findByUserId(userId);
-		List<Note> listNotes = new ArrayList<>();
-		for (Note userNotes : notes) {
-			System.out.println("note pin-->" + userNotes.isPin());
-			if (userNotes.isPin() == true && userNotes.isArchive() == false && userNotes.isTrash() == false) {
-				listNotes.add(userNotes);
-			}
-		}
-		return listNotes;
-	}
+ 
 
 }

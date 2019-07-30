@@ -218,5 +218,15 @@ public class UserServicesImplementation implements IUserServices {
 				Integer.parseInt(environment.getProperty("status.login.errorCode")));
 		return response;
 	}
+	
+	@Override
+	public boolean isUserPresent(String token) {
+		String userid = jWTToken.verifyToken(token);
+		Optional<User> isuser =userRepository.findByUserId(userid);
+		if (isuser.isPresent()) {
+			return true;
+		}
+		return false;
+	}
 
 }

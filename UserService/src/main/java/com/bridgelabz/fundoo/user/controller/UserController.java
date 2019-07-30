@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 
 import com.bridgelabz.fundoo.response.Response;
 import com.bridgelabz.fundoo.response.ResponseToken;
@@ -84,6 +85,12 @@ public class UserController {
 		Response statusResponse = userServices.reset(password, token);
 		return new ResponseEntity<Response>(statusResponse, HttpStatus.OK);
 
+	}
+	@GetMapping("/userPresent/{token}")
+	public boolean isUserpresent(@PathVariable String token) {
+		boolean value=userServices.isUserPresent(token);
+		return value;
+		
 	}
 
 }

@@ -27,6 +27,8 @@ public interface IUserServices {
 	// Resetting Password
 	public Response resetPassword(PasswordDTO passwordDto , String token);
 	 public Response reset(String password, String token);
+	 
+	 public boolean isUserPresent(String token);
 	
 	 
 
