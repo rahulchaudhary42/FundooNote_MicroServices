@@ -31,7 +31,7 @@ import com.bridgelabz.fundoo.response.Response;
 import io.swagger.annotations.ApiOperation;
 
 @RestController
-@RequestMapping("/user/note")
+@RequestMapping("/note")
 @PropertySource("classpath:message.properties")
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 public class NotesController {

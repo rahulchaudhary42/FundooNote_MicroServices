@@ -92,5 +92,9 @@ public class UserController {
 		return value;
 		
 	}
+	@GetMapping
+	public String test() {
+		return "hii";
+	}
 
 }
